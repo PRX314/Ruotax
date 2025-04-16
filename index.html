@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>X - Ruota delle Scelte</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Quicksand', 'Comfortaa', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;700&family=Comfortaa:wght@400;700&display=swap');
+        
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            background-color: #f5e9f7;
+            background-image: radial-gradient(#e3d1f4 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+        h1 {
+            color: #9370DB;
+            margin-bottom: 30px;
+            text-align: center;
+            font-family: 'Comfortaa', cursive;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+            letter-spacing: 1px;
+            font-size: 2.5rem;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 800px;
+        }
+        .wheel-container {
+            position: relative;
+            width: 400px;
+            height: 400px;
+            margin-bottom: 30px;
+            filter: drop-shadow(0 5px 15px rgba(0,0,0,0.2));
+        }
+        .wheel {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: #fff;
+            position: relative;
+            border: 12px solid #b19cd9;
+            box-shadow: 0 0 30px rgba(177, 156, 217, 0.5), inset 0 0 20px rgba(255,255,255,0.5);
+            overflow: hidden;
+            transition: transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99);
+        }
+        .wheel-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 60px;
+            height: 60px;
+            background: #fff;
+            border-radius: 50%;
+            border: 8px solid #b19cd9;
+            z-index: 10;
+            box-shadow: 0 0 15px rgba(0,0,0,0.2);
+        }
+        .wheel-center::after {
+            content: 'X';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 30px;
+            height: 30px;
+            background: #f8c8dc;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            font-size: 16px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+        }
+        .marker {
+            position: absolute;
+            top: -40px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 20px solid transparent;
+            border-right: 20px solid transparent;
+            border-top: 50px solid #f8c8dc;
+            z-index: 10;
+            filter: drop-shadow(0 3px 3px rgba(0,0,0,0.2));
+        }
+        .marker::after {
+            content: '';
+            position: absolute;
+            top: -50px;
+            left: -10px;
+            width: 20px;
+            height: 20px;
+            background: #f8c8dc;
+            border-radius: 50%;
+        }
+        
+        .wheel-canvas {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            border-radius: 50%;
+        }
+        
+        .controls {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .input-group {
+            width: 100%;
+            display: flex;
+            gap: 10px;
+            position: relative;
+        }
+        input, button {
+            padding: 12px 20px;
+            border: 2px solid #d4c4e9;
+            border-radius: 20px;
+            font-size: 16px;
+            font-family: 'Quicksand', sans-serif;
+        }
+        input {
+            flex: 1;
+            background-color: rgba(255, 255, 255, 0.8);
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+        input:focus {
+            outline: none;
+            border-color: #b19cd9;
+            box-shadow: 0 0 0 3px rgba(177, 156, 217, 0.3);
+        }
+        button {
+            background-color: #b19cd9;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+            box-shadow: 0 3px 5px rgba(0,0,0,0.1);
+        }
+        button:hover {
+            background-color: #9a84c9;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 10px rgba(0,0,0,0.15);
+        }
+        button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 3px rgba(0,0,0,0.1);
+        }
+        .spin-btn {
+            padding: 15px 40px;
+            font-size: 18px;
+            background-color: #f8c8dc;
+            margin: 20px 0;
+            color: #6a5687;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            border-radius: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+        .spin-btn:hover {
+            background-color: #f5b5cf;
+        }
+        .spin-btn::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: rgba(255,255,255,0.2);
+            transform: rotate(30deg);
+            transition: all 0.5s;
+            opacity: 0;
+        }
+        .spin-btn:hover::before {
+            opacity: 1;
+            transform: rotate(40deg);
+        }
+        .result {
+            margin-top: 20px;
+            padding: 20px;
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            width: 100%;
+            text-align: center;
+            min-height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: bold;
+            color: #6a5687;
+            border: 2px solid #d4c4e9;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        .result::before, .result::after {
+            content: '✨';
+            position: absolute;
+            font-size: 24px;
+            color: #b19cd9;
+        }
+        .result::before {
+            left: 15px;
+        }
+        .result::after {
+            right: 15px;
+        }
+        .phrases-list {
+            width: 100%;
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .phrase-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 20px;
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 15px;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+            border-left: 5px solid #b19cd9;
+            transition: all 0.3s;
+        }
+        .phrase-item:hover {
+            transform: translateX(5px);
+            background-color: rgba(255, 255, 255, 0.95);
+        }
+        .remove-btn {
+            background-color: #f8c8dc;
+            padding: 8px 15px;
+            color: #6a5687;
+            border-radius: 15px;
+            font-size: 14px;
+        }
+        .remove-btn:hover {
+            background-color: #f5b5cf;
+        }
+        
+        /* Confetti animation */
+        .confetti-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 20;
+            overflow: hidden;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: #f8c8dc;
+            opacity: 0;
+        }
+        
+        @media (max-width: 600px) {
+            .wheel-container {
+                width: 300px;
+                height: 300px;
+            }
+            .input-group {
+                flex-direction: column;
+            }
+            h1 {
+                font-size: 2rem;
+            }
+        }
+        
+        /* Animazione di scintille attorno alla ruota */
+        @keyframes sparkle {
+            0%, 100% { opacity: 0; transform: scale(0.8); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+        
+        .sparkle {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: #fff;
+            border-radius: 50%;
+            box-shadow: 0 0 10px 2px #f8c8dc;
+            opacity: 0;
+        }
+        
+        .sparkle:nth-child(1) {
+            top: 10%;
+            left: 20%;
+            animation: sparkle 3s ease-in-out infinite;
+        }
+        .sparkle:nth-child(2) {
+            top: 70%;
+            left: 10%;
+            animation: sparkle 2.5s ease-in-out 0.5s infinite;
+        }
+        .sparkle:nth-child(3) {
+            top: 80%;
+            right: 15%;
+            animation: sparkle 3.5s ease-in-out 1s infinite;
+        }
+        .sparkle:nth-child(4) {
+            top: 15%;
+            right: 20%;
+            animation: sparkle 4s ease-in-out 1.5s infinite;
+        }
+        .sparkle:nth-child(5) {
+            top: 40%;
+            right: 8%;
+            animation: sparkle 3.2s ease-in-out 0.7s infinite;
+        }
+        .sparkle:nth-child(6) {
+            top: 30%;
+            left: 8%;
+            animation: sparkle 2.8s ease-in-out 1.2s infinite;
+        }
+        
+        /* Stile ornamentale per il bordo della ruota */
+        .wheel::before {
+            content: '';
+            position: absolute;
+            top: -12px;
+            left: -12px;
+            right: -12px;
+            bottom: -12px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #f8c8dc, #b19cd9, #f8c8dc, #b19cd9);
+            background-size: 300% 300%;
+            animation: borderGradient 6s ease infinite;
+            z-index: -1;
+        }
+        
+        @keyframes borderGradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        @keyframes fall {
+            0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+            80% { opacity: 1; }
+            100% { transform: translateY(1000px) rotate(360deg); opacity: 0; }
+        }
+        
+        @keyframes sway {
+            0% { transform: translateX(-10px); }
+            100% { transform: translateX(10px); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>✨ X ✨</h1>
+        <div class="wheel-container">
+            <div class="marker"></div>
+            <div class="wheel" id="wheel">
+                <canvas id="wheelCanvas" class="wheel-canvas"></canvas>
+            </div>
+            <div class="wheel-center"></div>
+            
+            <!-- Scintille decorative -->
+            <div class="sparkle"></div>
+            <div class="sparkle"></div>
+            <div class="sparkle"></div>
+            <div class="sparkle"></div>
+            <div class="sparkle"></div>
+            <div class="sparkle"></div>
+        </div>
+        
+        <div class="result" id="result">
+            Aggiungi delle attività e gira la ruota per decidere cosa fare!
+        </div>
+        
+        <button class="spin-btn" id="spinBtn">Gira la Ruota!</button>
+        
+        <div class="controls">
+            <div class="input-group">
+                <input type="text" id="phraseInput" placeholder="Inserisci un'attività...">
+                <button id="addBtn">Aggiungi</button>
+            </div>
+            
+            <div class="phrases-list" id="phrasesList">
+                <!-- Le attività verranno aggiunte qui dinamicamente -->
+            </div>
+        </div>
+        
+        <div class="confetti-container" id="confettiContainer"></div>
+    </div>
+
+    <script>
+        // Array per memorizzare le attività
+        let phrases = ["Leggere un libro", "Guardare un film", "Fare una passeggiata", "Cucinare qualcosa di nuovo"];
+        const colors = [
+            "#c5e1a5", "#ffcc80", "#b3e5fc", "#f8bbd0", 
+            "#d1c4e9", "#b2dfdb", "#ffecb3", "#e1bee7",
+            "#c8e6c9", "#bbdefb", "#ffcdd2", "#d7ccc8"
+        ];
+        
+        const wheel = document.getElementById('wheel');
+        const wheelCanvas = document.getElementById('wheelCanvas');
+        const ctx = wheelCanvas.getContext('2d');
+        const spinBtn = document.getElementById('spinBtn');
+        const phraseInput = document.getElementById('phraseInput');
+        const addBtn = document.getElementById('addBtn');
+        const phrasesList = document.getElementById('phrasesList');
+        const result = document.getElementById('result');
+        const confettiContainer = document.getElementById('confettiContainer');
+        
+        let isSpinning = false;
+        
+        // Imposta le dimensioni del canvas alla dimensione del contenitore
+        function setupCanvas() {
+            const container = wheel.getBoundingClientRect();
+            wheelCanvas.width = container.width;
+            wheelCanvas.height = container.height;
+        }
+        
+        // Disegna la ruota con tutte le attività
+        function drawWheel() {
+            setupCanvas();
+            
+            if (phrases.length === 0) {
+                result.textContent = "Aggiungi almeno un'attività per girare la ruota!";
+                spinBtn.disabled = true;
+                return;
+            }
+            
+            spinBtn.disabled = false;
+            const centerX = wheelCanvas.width / 2;
+            const centerY = wheelCanvas.height / 2;
+            const radius = Math.min(centerX, centerY);
+            const sliceAngle = (2 * Math.PI) / phrases.length;
+            
+            ctx.clearRect(0, 0, wheelCanvas.width, wheelCanvas.height);
+            
+            // Disegna ogni spicchio della ruota
+            phrases.forEach((phrase, index) => {
+                const startAngle = index * sliceAngle;
+                const endAngle = (index + 1) * sliceAngle;
+                
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.arc(centerX, centerY, radius - 5, startAngle, endAngle);
+                ctx.closePath();
+                
+                ctx.fillStyle = colors[index % colors.length];
+                ctx.fill();
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                
+                // Pattern decorativo
+                ctx.save();
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.arc(centerX, centerY, radius * 0.9, startAngle, endAngle);
+                ctx.closePath();
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+                ctx.fill();
+                ctx.restore();
+                
+                // Testo centrato nello spicchio
+                const middleAngle = startAngle + (sliceAngle / 2);
+                const textRadius = radius * 0.65;
+                const textX = centerX + Math.cos(middleAngle) * textRadius;
+                const textY = centerY + Math.sin(middleAngle) * textRadius;
+                
+                ctx.save();
+                ctx.translate(textX, textY);
+                ctx.rotate(middleAngle + Math.PI/2);
+                
+                ctx.fillStyle = '#6a5687';
+                ctx.font = 'bold 14px Quicksand';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.shadowColor = 'rgba(255,255,255,0.8)';
+                ctx.shadowBlur = 3;
+                
+                // Tronca il testo se troppo lungo
+                let displayText = phrase;
+                if (phrase.length > 15) {
+                    displayText = phrase.substring(0, 12) + '...';
+                }
+                
+                ctx.fillText(displayText, 0, 0);
+                ctx.restore();
+                
+                // Decorazioni ai bordi
+                ctx.save();
+                const decorRadius = radius - 15;
+                const decorX = centerX + Math.cos(middleAngle) * decorRadius;
+                const decorY = centerY + Math.sin(middleAngle) * decorRadius;
+                
+                ctx.translate(decorX, decorY);
+                ctx.fillStyle = '#fff';
+                ctx.beginPath();
+                ctx.arc(0, 0, 3, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            });
+            
+            // Cerchio ornamentale interno
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius * 0.2, 0, Math.PI * 2);
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.7)';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+        }
+        
+        // Crea effetto confetti per la celebrazione
+        function createConfetti() {
+            confettiContainer.style.opacity = '1';
+            confettiContainer.innerHTML = '';
+            
+            const confettiColors = ['#f8c8dc', '#b19cd9', '#ffcc80', '#b3e5fc', '#d1c4e9'];
+            const confettiCount = 100;
+            
+            for (let i = 0; i < confettiCount; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                
+                const size = Math.random() * 10 + 5;
+                const shape = Math.random() > 0.5 ? '50%' : '0%';
+                const color = confettiColors[Math.floor(Math.random() * confettiColors.length)];
+                
+                confetti.style.width = `${size}px`;
+                confetti.style.height = `${size}px`;
+                confetti.style.borderRadius = shape;
+                confetti.style.backgroundColor = color;
+                confetti.style.left = `${Math.random() * 100}%`;
+                confetti.style.top = `-20px`;
+                confetti.style.opacity = '1';
+                
+                const duration = Math.random() * 3 + 2;
+                const delay = Math.random() * 0.5;
+                
+                confetti.style.animation = `
+                    fall ${duration}s ease-in ${delay}s forwards,
+                    sway ${duration * 0.5}s ease-in-out ${delay}s alternate infinite
+                `;
+                
+                confettiContainer.appendChild(confetti);
+            }
+            
+            setTimeout(() => {
+                confettiContainer.style.opacity = '0';
+            }, 5000);
+        }
+        
+        // Aggiungi una nuova attività
+        function addPhrase() {
+            const phrase = phraseInput.value.trim();
+            if (phrase) {
+                phrases.push(phrase);
+                drawWheel();
+                renderPhrasesList();
+                phraseInput.value = '';
+                
+                result.textContent = "Attività aggiunta con successo!";
+                result.style.backgroundColor = "rgba(200, 230, 201, 0.8)";
+                setTimeout(() => {
+                    result.textContent = "Aggiungi delle attività e gira la ruota per decidere cosa fare!";
+                    result.style.backgroundColor = "rgba(255, 255, 255, 0.8)";
+                }, 1500);
+            }
+        }
+        
+        // Rimuovi un'attività
+        function removePhrase(index) {
+            phrases.splice(index, 1);
+            drawWheel();
+            renderPhrasesList();
+        }
+        
+        // Mostra la lista delle attività
+        function renderPhrasesList() {
+            phrasesList.innerHTML = '';
+            phrases.forEach((phrase, index) => {
+                const item = document.createElement('div');
+                item.className = 'phrase-item';
+                
+                const text = document.createElement('span');
+                text.textContent = phrase;
+                
+                const removeBtn = document.createElement('button');
+                removeBtn.className = 'remove-btn';
+                removeBtn.textContent = 'Rimuovi';
+                removeBtn.onclick = () => removePhrase(index);
+                
+                item.appendChild(text);
+                item.appendChild(removeBtn);
+                phrasesList.appendChild(item);
+            });
+        }
+        
+        // FUNZIONE CORRETTA - SINCRONIZZA LA ROTAZIONE VISIVA CON IL RISULTATO
+        function spinWheel() {
+            if (phrases.length === 0 || isSpinning) return;
+            
+            isSpinning = true;
+            spinBtn.disabled = true;
+            result.textContent = "La ruota sta girando...";
+            
+            // 1. Selezioniamo casualmente un'attività
+            const winningIndex = Math.floor(Math.random() * phrases.length);
+            const selectedPhrase = phrases[winningIndex];
+            
+            // 2. Calcoliamo l'angolo esatto per far fermare la ruota sul settore selezionato
+            const sliceAngle = (2 * Math.PI) / phrases.length;
+            
+            // L'angolo di destinazione deve puntare il marker al centro dello spicchio vincente
+            // Il marker è in alto (a 270 gradi o 3π/2 radianti)
+            // Aggiungiamo rotazioni complete (2π) per l'effetto visivo
+            const destinationAngle = -(winningIndex * sliceAngle + sliceAngle / 2 - 3 * Math.PI / 2);
+            
+            // Aggiungiamo rotazioni complete per l'effetto visivo (4-7 rotazioni)
+            const fullRotations = 4 + Math.floor(Math.random() * 3); // 4, 5 o 6 rotazioni complete
+            const spinDegrees = (destinationAngle + fullRotations * 2 * Math.PI) * (180 / Math.PI);
+            
+            // 3. Applichiamo la rotazione con un'animazione
+            wheel.style.transition = 'transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99)';
+            wheel.style.transform = `rotate(${spinDegrees}deg)`;
+            
+            // 4. Aspettiamo che l'animazione finisca e mostriamo il risultato
+            setTimeout(() => {
+                // Animazione completata, mostriamo il risultato
+                result.textContent = `Oggi dovresti: ${selectedPhrase}`;
+                result.style.backgroundColor = colors[winningIndex % colors.length];
+                result.style.color = '#6a5687';
+                result.style.fontWeight = 'bold';
+                result.style.transform = "scale(1.05)";
+                
+                // Crea effetto confetti
+                createConfetti();
+                
+                // Aggiungi un piccolo effetto di celebrazione
+                setTimeout(() => {
+                    result.style.transform = "scale(1)";
+                    setTimeout(() => {
+                        result.style.backgroundColor = "rgba(255, 255, 255, 0.8)";
+                    }, 2000);
+                }, 500);
+                
+                isSpinning = false;
+                spinBtn.disabled = false;
+            }, 4000); // 4 secondi di animazione
+        }
+        
+        // Event listeners
+        spinBtn.addEventListener('click', spinWheel);
+        addBtn.addEventListener('click', addPhrase);
+        phraseInput.addEventListener('keyup', function(event) {
+            if (event.key === 'Enter') {
+                addPhrase();
+            }
+        });
+        
+        // Inizializzazione
+        window.addEventListener('resize', drawWheel);
+        drawWheel();
+        renderPhrasesList();
+    </script>
+</body>
+</html>
